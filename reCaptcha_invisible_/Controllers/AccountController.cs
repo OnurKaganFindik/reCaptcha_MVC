@@ -70,6 +70,28 @@ namespace reCaptcha_invisible_.Controllers
         {
             if (!ModelState.IsValid)
             {
+                try //Validate Google recaptcha here
+                {
+                    using (WebClient client = new WebClient())
+                    {
+                        var response =
+                            client.DownloadString(
+                                string.Format("https://www.google.com/recaptcha/api/siteverify?secret={0}&response={1}", "6Lef_XYeAAAAANiEhOBMMUflnXD-O1XaIKnHoUJm", Request.Params["g-Recaptcha-Response"]));
+
+                        ReCaptchaResult reCaptchaResult = JsonConvert.DeserializeObject<ReCaptchaResult>(response);
+
+                        if (!reCaptchaResult.Success)
+                        {
+                            ModelState.AddModelError("reCaptcha", "Robot olmadığınızı ispatlayın");
+                            return View(model);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    ModelState.AddModelError("reCaptcha", exception);
+                    return View(model);
+                }
                 return View(model);
             }
 
@@ -151,7 +173,7 @@ namespace reCaptcha_invisible_.Controllers
         {
             if (ModelState.IsValid)
             {
-                try
+                try //Validate Google recaptcha here
                 {
                     using (WebClient client = new WebClient())
                     {
